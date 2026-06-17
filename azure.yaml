@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+requiredVersions:
+  azd: '>= 1.25.2'
+  extensions:
+    azure.ai.agents: '>= 0.1.34-preview'
+name: governance-skill-demo
+services:
+  governance-intake-agent:
+    project: ./src/governance_foundry_agent
+    host: azure.ai.agent
+    language: docker
+    docker:
+      remoteBuild: true
+    config:
+      container:
+        resources:
+          cpu: "0.5"
+          memory: 1Gi
+        scale:
+          maxReplicas: 1
+      deployments:
+        - model:
+            format: OpenAI
+            name: gpt-4.1-mini
+            version: "2025-04-14"
+          name: gpt-4.1-mini
+          sku:
+            capacity: 10
+            name: GlobalStandard
+      startupCommand: python main.py
+infra:
+  provider: bicep
+  path: ./infra

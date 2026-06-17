@@ -1,0 +1,23 @@
+{
+  "request_title": "Q3 Regional Sales Performance Dashboard",
+  "request_description": "Enhance the existing internal sales dashboard with additional regional trend views, quota-to-actual comparisons, and drill-through pages for synthetic Q3 performance tracking.",
+  "business_sponsor": "Jordan Mitchell",
+  "business_owner": "Casey Rivera",
+  "technical_owner": "Morgan Chen",
+  "target_users": "Regional sales managers and internal finance analysts",
+  "business_goal": "Provide a clearer internal view of synthetic regional sales performance so teams can monitor quarterly trends and adjust planning discussions.",
+  "request_type": "dashboard",
+  "data_sources": [
+    "contoso_sales_warehouse",
+    "contoso_crm_export"
+  ],
+  "contains_sensitive_data": false,
+  "contains_personal_data": false,
+  "external_sharing": false,
+  "production_impact": "low",
+  "decision_impact": "low",
+  "urgency": "medium",
+  "preferred_platform": "Power BI",
+  "known_constraints": "Must reuse the existing governed semantic model for internal reporting.",
+  "missing_information": null
+}

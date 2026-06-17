@@ -1,0 +1,25 @@
+{
+  "request_title": "Automated Compliance Review Agent",
+  "request_description": "Build an agentic workflow that reviews synthetic compliance records, flags issues, drafts remediation tasks, and prepares outbound review packages for approved external counterparties. The agent is expected to take workflow actions against governed systems, route exceptions for human review, and maintain full audit evidence.",
+  "business_sponsor": "Dr. Avery Brooks",
+  "business_owner": "Taylor Kim",
+  "technical_owner": "Quinn Okafor",
+  "target_users": "Compliance operations specialists, internal audit coordinators, and governance reviewers",
+  "business_goal": "Accelerate synthetic compliance case review while preserving oversight, traceability, and approval controls for high-impact operational decisions.",
+  "request_type": "agentic_workflow",
+  "data_sources": [
+    "contoso_compliance_db",
+    "contoso_employee_records",
+    "contoso_audit_trail",
+    "external_regulatory_feed"
+  ],
+  "contains_sensitive_data": true,
+  "contains_personal_data": true,
+  "external_sharing": true,
+  "production_impact": "high",
+  "decision_impact": "high",
+  "urgency": "high",
+  "preferred_platform": "Azure AI Foundry",
+  "known_constraints": "Must comply with Contoso internal data residency policy",
+  "missing_information": "Confirm which external counterparties may receive generated review packages and what approval workflow governs those releases."
+}

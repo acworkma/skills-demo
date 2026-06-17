@@ -1,0 +1,83 @@
+{
+  "intake_summary": "Project 'Automated Compliance Review Agent' submitted by Dr. Avery Brooks (business owner: Taylor Kim, technical owner: Quinn Okafor). Goal: Accelerate synthetic compliance case review while preserving oversight, traceability, and approval controls for high-impact operational decisions.. Type: agentic_workflow. Target users: Compliance operations specialists, internal audit coordinators, and governance reviewers.",
+  "normalized_request_type": "agentic_workflow",
+  "governance_tier": "high",
+  "tier_rationale": "Classified as HIGH because: contains sensitive data; contains personal data (PII); outputs shared externally; high production impact; high decision impact; request type 'agentic_workflow' requires elevated governance.",
+  "required_reviews": [
+    "Business Sponsor Approval",
+    "Architecture Review",
+    "Data Governance Review",
+    "Security Review",
+    "Privacy Review",
+    "Responsible AI Review",
+    "Operational Readiness Review"
+  ],
+  "required_controls": [
+    "Access control policy defined",
+    "Data classification documented",
+    "Logging and monitoring enabled",
+    "Encryption at rest and in transit",
+    "PII handling procedures documented",
+    "Responsible AI impact assessment completed",
+    "Incident response plan documented",
+    "Audit trail enabled",
+    "Human-in-the-loop safeguards for agentic actions"
+  ],
+  "recommended_architecture_path": "Azure AI Foundry hosted agent with human-in-the-loop controls",
+  "evaluation_plan": {
+    "metrics": [
+      "User satisfaction score",
+      "Task completion rate",
+      "Decision accuracy",
+      "Fairness across user groups",
+      "Latency p95"
+    ],
+    "test_scenarios": [
+      "Happy-path intake submission",
+      "Missing-field validation",
+      "Edge-case classification",
+      "Adversarial input handling",
+      "PII redaction validation",
+      "Human-in-the-loop escalation",
+      "Action-rollback scenario"
+    ],
+    "responsible_ai_checks": [
+      "Fairness evaluation",
+      "Groundedness check",
+      "Harmful-content filter validation",
+      "Jailbreak resistance test",
+      "Autonomous-action boundary test"
+    ]
+  },
+  "approval_checklist": [
+    "Business case documented",
+    "Data sources identified",
+    "Target users confirmed",
+    "Architecture design reviewed",
+    "Data governance sign-off obtained",
+    "Security review completed",
+    "Privacy impact assessment completed",
+    "Responsible AI review completed",
+    "Operational readiness confirmed",
+    "Monitoring and alerting configured",
+    "Incident response plan approved"
+  ],
+  "open_questions": [
+    "Missing information noted: Confirm which external counterparties may receive generated review packages and what approval workflow governs those releases."
+  ],
+  "next_steps": [
+    "Share this governance readiness package with your business sponsor.",
+    "Schedule required review sessions.",
+    "Complete architecture design document before review.",
+    "Submit Privacy Impact Assessment (PIA).",
+    "Submit Responsible AI Impact Assessment.",
+    "Prepare operational readiness checklist.",
+    "Obtain all required approvals before proceeding to build."
+  ],
+  "audit_metadata": {
+    "skill_name": "Project Intake & Governance Readiness",
+    "skill_version": "1.0.0",
+    "assessed_at": "2026-06-17T00:00:00+00:00",
+    "source": "shared_skill"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "request_title": "Operations Insights AI Assistant",
+  "request_description": "Create an internal AI assistant that summarizes synthetic operational dashboard notes, incident summaries, and capacity planning highlights for weekly operations reviews. The assistant may recommend topics to investigate further but will not trigger workflow actions or automate decisions.",
+  "business_sponsor": "Alex Thompson",
+  "business_owner": "Sam Patel",
+  "technical_owner": "Riley Nakamura",
+  "target_users": "Operations managers, service leads, and planning coordinators",
+  "business_goal": "Reduce manual effort spent reviewing synthetic operational notes while improving consistency in internal decision-support summaries.",
+  "request_type": "ai_assistant",
+  "data_sources": [
+    "contoso_ops_metrics",
+    "contoso_incident_log",
+    "contoso_capacity_planner"
+  ],
+  "contains_sensitive_data": false,
+  "contains_personal_data": false,
+  "external_sharing": false,
+  "production_impact": "medium",
+  "decision_impact": "medium",
+  "urgency": "medium",
+  "preferred_platform": "Azure AI Foundry",
+  "known_constraints": "Responses must stay grounded in approved internal operational sources.",
+  "missing_information": null
+}

@@ -1,0 +1,187 @@
+# Project Intake & Governance Readiness Skill
+#
+# This YAML defines the shared Foundry Skill artifact. It is the single
+# source of truth for input/output contracts and governance classification
+# rules used by both the Foundry hosted agent and the Copilot no-code agent.
+#
+# Status: Azure AI Foundry Skills are in preview. When the public SDK surface
+# is GA, register this artifact via:
+#   project_client.beta.skills.create(name="project-intake-governance", ...)
+# Until then, the Python module at src/governance_foundry_agent/shared_skill/
+# implements the runtime, and this YAML serves as the contract definition.
+
+skill:
+  name: "Project Intake & Governance Readiness"
+  id: "project-intake-governance"
+  version: "1.0.0"
+  description: >
+    Standardize project intake, classification, governance tiering, required
+    review identification, evaluation planning, and approval readiness for
+    analytics and AI project proposals. Define governance rules once and
+    reuse across pro-code Foundry agents and no-code Copilot agents.
+
+  purpose: >
+    Organizations submit analytics, AI, automation, data platform, agentic
+    workflow, Databricks, GitHub Copilot, or Azure AI Foundry project ideas
+    through various channels. This Skill classifies each request, assigns a
+    governance tier (low / medium / high), identifies required reviews and
+    controls, and generates a standardized readiness package — ensuring
+    consistent governance regardless of the requesting channel.
+
+  input_contract:
+    fields:
+      - name: request_title
+        type: string
+        required: true
+        description: "Short title for the project request"
+      - name: request_description
+        type: string
+        required: true
+        description: "Detailed description of the request"
+      - name: business_sponsor
+        type: string
+        required: true
+        description: "Executive sponsor name"
+      - name: business_owner
+        type: string
+        required: true
+        description: "Day-to-day business owner"
+      - name: technical_owner
+        type: string
+        required: true
+        description: "Technical lead or architect"
+      - name: target_users
+        type: string
+        required: true
+        description: "Who will use the solution"
+      - name: business_goal
+        type: string
+        required: true
+        description: "Business outcome or KPI this supports"
+      - name: request_type
+        type: string
+        required: true
+        description: "Category: reporting | dashboard | analytics | ai_assistant | automation | agentic_workflow | data_platform | copilot_extension | other"
+      - name: data_sources
+        type: array[string]
+        required: false
+        description: "Data sources involved"
+      - name: contains_sensitive_data
+        type: boolean
+        required: true
+        description: "Does the solution use sensitive data?"
+      - name: contains_personal_data
+        type: boolean
+        required: true
+        description: "Does the solution use personal data (PII)?"
+      - name: external_sharing
+        type: boolean
+        required: true
+        description: "Will outputs be shared externally?"
+      - name: production_impact
+        type: string
+        required: true
+        description: "Production impact level: low | medium | high"
+      - name: decision_impact
+        type: string
+        required: true
+        description: "Decision impact level: low | medium | high"
+      - name: urgency
+        type: string
+        required: false
+        description: "Urgency: low | medium | high | critical"
+        default: "medium"
+      - name: preferred_platform
+        type: string
+        required: false
+        description: "Preferred platform (e.g., Azure AI Foundry, Databricks)"
+      - name: known_constraints
+        type: string
+        required: false
+        description: "Known constraints or blockers"
+      - name: missing_information
+        type: string
+        required: false
+        description: "Information still needed"
+
+  output_contract:
+    fields:
+      - name: intake_summary
+        type: string
+        description: "Plain-language summary of the request"
+      - name: normalized_request_type
+        type: string
+        description: "Normalized request category"
+      - name: governance_tier
+        type: string
+        description: "Risk tier: low | medium | high"
+      - name: tier_rationale
+        type: string
+        description: "Why this tier was assigned"
+      - name: required_reviews
+        type: array[string]
+        description: "Required review gates"
+      - name: required_controls
+        type: array[string]
+        description: "Required controls and safeguards"
+      - name: recommended_architecture_path
+        type: string
+        description: "Suggested architecture approach"
+      - name: evaluation_plan
+        type: object
+        description: "Evaluation expectations including metrics, test scenarios, and responsible AI checks"
+      - name: approval_checklist
+        type: array[string]
+        description: "Checklist items that must be completed before approval"
+      - name: open_questions
+        type: array[string]
+        description: "Unresolved questions requiring follow-up"
+      - name: next_steps
+        type: array[string]
+        description: "Recommended next actions"
+      - name: audit_metadata
+        type: object
+        description: "Audit trail including skill name, version, timestamp, and source"
+
+  governance_tiers:
+    low:
+      label: "Low"
+      criteria:
+        - "Internal-only reporting or productivity scenario"
+        - "No sensitive or personal data"
+        - "No external sharing"
+        - "Low production impact"
+        - "Low decision impact"
+    medium:
+      label: "Medium"
+      criteria:
+        - "Multiple enterprise data sources"
+        - "Moderate operational decision support"
+        - "Automation or internal AI assistance"
+        - "Does not trigger any HIGH-tier criteria"
+    high:
+      label: "High"
+      criteria:
+        - "Sensitive data involved"
+        - "Personal data (PII) involved"
+        - "External sharing of outputs"
+        - "High production impact"
+        - "High decision impact"
+        - "Agentic workflows that take autonomous actions"
+        - "User-facing AI behavior"
+
+  foundry_skill_binding:
+    # When Azure AI Foundry Skills reach GA, register this Skill using:
+    #
+    #   from azure.ai.projects import AIProjectClient
+    #   client = AIProjectClient(endpoint=..., credential=...)
+    #   skill = client.beta.skills.create(
+    #       name="project-intake-governance",
+    #       inline_content=SkillInlineContent(content=open("skills/project_intake_governance_skill.yaml").read())
+    #   )
+    #
+    # The Foundry hosted agent will then reference this registered Skill
+    # instead of importing the Python module directly.
+    status: "preview — use Python module at src/governance_foundry_agent/shared_skill/"
+    registration_method: "azure.ai.projects.beta.skills.create()"
+    sdk_package: "azure-ai-projects>=2.2.0"
