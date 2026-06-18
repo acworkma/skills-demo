@@ -63,7 +63,7 @@ This is the key step that connects the Copilot Studio agent to the same governan
 | **Authorization URL** *(required)* | `https://login.microsoftonline.com/<tenant-id>/oauth2/v2.0/authorize` |
 | **Token URL template** *(required)* | `https://login.microsoftonline.com/<tenant-id>/oauth2/v2.0/token` |
 | **Refresh URL** *(required)* | `https://login.microsoftonline.com/<tenant-id>/oauth2/v2.0/token` |
-| **Scopes** | `https://ai.azure.com/.default` |
+| **Scopes** | `https://cognitiveservices.azure.com/.default` |
 | **Redirect URL** | *(auto-generated — leave blank; Copilot Studio fills this after you save)* |
 
    > **Note**: You need an Entra ID app registration with API permissions for Azure AI Services. Replace `<tenant-id>` with your Entra tenant ID. The **Refresh URL** uses the same token endpoint as the **Token URL template**.
