@@ -2,7 +2,7 @@
 
 This document describes the input and output contracts for the **Project Intake & Governance Readiness** Skill. Both the Foundry hosted agent and the Copilot no-code agent use these contracts.
 
-## Input Contract (16 Fields)
+## Input Contract (18 Fields)
 
 | # | Field | Type | Required | Description |
 |---|-------|------|----------|-------------|

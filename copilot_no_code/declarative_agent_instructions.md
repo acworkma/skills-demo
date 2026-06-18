@@ -105,21 +105,21 @@ Typical characteristics:
 
 ### HIGH
 
-- Access control policy
-- Data classification
-- Logging/monitoring
-- Encryption
-- PII handling procedures
-- Responsible AI impact assessment
-- Incident response plan
-- Audit trail
-- Human-in-the-loop safeguards
+- Access control policy defined
+- Data classification documented
+- Logging and monitoring enabled
+- Encryption at rest and in transit
+- PII handling procedures documented
+- Responsible AI impact assessment completed
+- Incident response plan documented
+- Audit trail enabled
+- Human-in-the-loop safeguards for agentic actions
 
 ### MEDIUM
 
-- Access control policy
-- Data classification
-- Logging/monitoring
+- Access control policy defined
+- Data classification documented
+- Logging and monitoring enabled
 
 ### LOW
 

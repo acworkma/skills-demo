@@ -17,7 +17,7 @@ A request is classified as **HIGH** if **any** of the following are true:
 
 **Required reviews:** Business Sponsor Approval, Architecture Review, Data Governance Review, Security Review, Privacy Review, Responsible AI Review, Operational Readiness Review
 
-**Required controls:** Access control policy, data classification, logging/monitoring, encryption, PII handling procedures, responsible AI impact assessment, incident response plan, audit trail, human-in-the-loop safeguards
+**Required controls:** Access control policy defined, Data classification documented, Logging and monitoring enabled, Encryption at rest and in transit, PII handling procedures documented, Responsible AI impact assessment completed, Incident response plan documented, Audit trail enabled, Human-in-the-loop safeguards for agentic actions
 
 ### 🟡 MEDIUM Tier
 
@@ -31,7 +31,7 @@ Typical characteristics:
 
 **Required reviews:** Business Sponsor Approval, Architecture Review, Data Governance Review
 
-**Required controls:** Access control policy, data classification, logging/monitoring
+**Required controls:** Access control policy defined, Data classification documented, Logging and monitoring enabled
 
 ### 🟢 LOW Tier
 

@@ -125,30 +125,33 @@ This gives you two different user experiences with one governance definition.
 azd ext install microsoft.foundry
 ```
 
-### 3) Initialize the agent definition
-
-Run this from `src/governance_foundry_agent`:
+### 3) Authenticate and initialize
 
 ```bash
-azd ai agent init -m agent.manifest.yaml --deploy-mode code
+azd auth login
+azd init --environment <your-env-name>
 ```
 
-### 4) Configure environment variables
-
-Copy `.env.example` to `.env` in `src/governance_foundry_agent` and set:
-
-- `FOUNDRY_PROJECT_ENDPOINT`
-- `AZURE_AI_MODEL_DEPLOYMENT_NAME`
-
-### 5) Provision infrastructure if needed
-
-If you are creating a new Foundry-backed environment:
+### 4) Configure your Azure environment
 
 ```bash
-azd provision
+azd env set AZURE_SUBSCRIPTION_ID <your-subscription-id>
+azd env set AZURE_LOCATION <region>               # e.g. eastus2
+azd env set AZURE_RESOURCE_GROUP <rg-name>         # e.g. rg-skills
 ```
 
-If you already have the required Foundry project and supporting Azure resources, you can skip this step.
+### 5) Connect to your Foundry project
+
+If you have an existing Foundry project, set these variables:
+
+```bash
+azd env set AZURE_AI_PROJECT_ID <full-arm-resource-id-of-project>
+azd env set FOUNDRY_PROJECT_ENDPOINT https://<account>.services.ai.azure.com/api/projects/<project>
+azd env set AZURE_CONTAINER_REGISTRY_ENDPOINT <registry>.azurecr.io
+azd env set AZURE_AI_MODEL_DEPLOYMENT_NAME gpt-4.1-mini
+```
+
+If you need to create new resources, see the [detailed setup guide](#detailed-azure-resource-setup) below.
 
 ### 6) Deploy the hosted agent
 
@@ -156,11 +159,48 @@ If you already have the required Foundry project and supporting Azure resources,
 azd deploy
 ```
 
-### 7) Invoke the demo
+### 7) Verify the agent
 
 ```bash
+azd ai agent show
 azd ai agent invoke "I want to submit a new AI project for governance review"
 ```
+
+### Detailed Azure Resource Setup
+
+If you don't have existing resources, create them before deploying:
+
+```bash
+# Create resource group
+az group create --name rg-skills --location eastus2
+
+# Create AI Services account with managed identity
+az cognitiveservices account create \
+  --name <ai-account-name> --resource-group rg-skills \
+  --location eastus2 --kind AIServices --sku S0 \
+  --custom-domain <ai-account-name>
+az cognitiveservices account identity assign \
+  --name <ai-account-name> --resource-group rg-skills
+
+# Create Foundry project (via REST API)
+az rest --method PUT \
+  --url "https://management.azure.com/subscriptions/<sub>/resourceGroups/rg-skills/providers/Microsoft.CognitiveServices/accounts/<ai-account-name>/projects/<project-name>?api-version=2025-06-01" \
+  --body '{"location":"eastus2","identity":{"type":"SystemAssigned"},"properties":{"displayName":"Skills Demo"}}'
+
+# Deploy model
+az cognitiveservices account deployment create \
+  --name <ai-account-name> --resource-group rg-skills \
+  --deployment-name gpt-4.1-mini --model-name gpt-4.1-mini \
+  --model-version 2025-04-14 --model-format OpenAI \
+  --sku-capacity 10 --sku-name GlobalStandard
+
+# Create container registry and grant pull access
+az acr create --name <acr-name> --resource-group rg-skills \
+  --location eastus2 --sku Basic --admin-enabled true
+# Grant AcrPull to both AI Services and project managed identities
+```
+
+Then set the `azd env` variables from step 5 and run `azd deploy`.
 
 ## 🪄 Quick Start — Configure the Copilot Agent
 
