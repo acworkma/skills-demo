@@ -1,34 +1,142 @@
 # 🗣️ Demo Talk Track
 
-Use this narrative for a 3–5 minute customer demo:
-
-1. Start with the business problem: governance logic often gets duplicated across bots, copilots, and custom apps.
-2. Open the Foundry portal and show the registered **Skill** under Build → Tools → Skills.
-3. Show the Foundry hosted agent and how it calls the shared runtime through `evaluate_governance`.
-4. Show the no-code Copilot agent instructions and highlight that they reference the same contract and rules.
-5. Close with the key value proposition: **define once, reuse everywhere**.
+> **Audience**: Enterprise customers, architects, and IT leaders evaluating Azure AI Foundry.
+>
+> **Duration**: 10–15 minutes (adjust by skipping optional sections).
+>
+> **Key message**: Define governance rules once as a Foundry Skill, publish them to a Toolbox, and every agent — pro-code or no-code — discovers and follows the same rules automatically.
 
 ---
 
-## ▶️ Suggested Live Demo Flow
+## Act 1 — The Problem (2 min)
 
-1. Open the Foundry portal and show the registered Skill under **Build → Tools → Skills**.
-2. Open `skills/project_intake_governance_skill.yaml` and point out the shared input/output contract.
-3. Open `src/governance_foundry_agent/main.py` and show the tool registration.
-4. Invoke the Foundry hosted agent with a sample project idea.
-5. Show the generated readiness package and markdown summary.
-6. Open the Copilot no-code deployment guide and explain the alternate user experience.
-7. If available, show the Copilot agent producing the same governance outcome for the same request.
-8. End by comparing both channels and reinforcing that the business rules were not duplicated.
+> **What to say**:
+>
+> "Every enterprise has governance rules — who approves a project, what reviews are required, what controls must be in place. Today, those rules get copy-pasted into every bot, every copilot, every custom agent. When a policy changes, you're updating five different codebases. Worse, they drift. Your Copilot agent says a project needs two reviews while your pro-code agent says three."
+
+**Show**: Open `copilot_no_code/declarative_agent_instructions.md` and scroll through the governance rules. Point out how long and detailed they are.
+
+> "Now imagine maintaining this across dozens of agents. That's the problem Foundry Skills solve."
+
+---
+
+## Act 2 — The Skill: Define Once (2 min)
+
+> **What to say**:
+>
+> "A Foundry Skill is a versioned, centrally-managed piece of behavioral guidance. Think of it as a policy document that agents can discover and consume at runtime — not embedded in code, not copy-pasted."
+
+**Show in the Foundry portal**:
+1. Navigate to **Build → Tools → Skills**.
+2. Click on `project-intake-governance` and show the Skill content — the input contract (18 fields), the tiering rules (low/medium/high), the required reviews, and the output contract.
+
+> "This Skill defines everything: what information to collect from a project submitter, how to classify risk, what reviews and controls are required, and what the output package looks like. It's authored once and versioned."
+
+---
+
+## Act 3 — The Toolbox: Publish as MCP (2 min)
+
+> **What to say**:
+>
+> "A Skill sitting in a registry is useful, but how do agents find it? That's what a Toolbox does. A Toolbox is an MCP endpoint — Model Context Protocol — that any client can connect to and discover available skills and tools."
+
+**Show in the Foundry portal**:
+1. Navigate to **Build → Tools → Toolboxes**.
+2. Click on `governance-toolbox` and show the Skill attached to it.
+3. Copy the MCP endpoint URL and display it.
+
+> "Any MCP-compatible client — a hosted Foundry agent, Copilot Studio, Claude Code, GitHub Copilot, LangGraph — can connect to this single endpoint and discover every skill and tool we've published. No SDK required, no special integration. It's an open protocol."
+
+**Show the MCP endpoint URL format**:
+```
+https://<account>.services.ai.azure.com/api/projects/<project>/toolboxes/governance-toolbox/mcp?api-version=v1
+```
+
+---
+
+## Act 4 — Pro-Code Agent: Consume via MCP (3 min)
+
+> **What to say**:
+>
+> "Let's see this in action. Here's a hosted Foundry agent — a Python container running in Azure. At startup, it connects to the Toolbox MCP endpoint and loads the governance Skill."
+
+**Show in code** (`src/governance_foundry_agent/main.py`):
+1. Show the `_load_skill_from_toolbox()` function — it connects to the Toolbox via MCP, calls `resources/list` to discover skills, then `read_resource` to download the Skill content.
+2. Show `_build_instructions()` — the downloaded Skill content gets injected into the agent's system prompt.
+3. Show the `evaluate_governance` tool — a local Python function that executes the governance rules deterministically (not LLM-dependent).
+
+> "The agent's behavior comes from the Skill. The execution comes from the Python module. If the governance rules change, we update the Skill in Foundry — not the agent code."
+
+**Live demo**: Invoke the agent with a sample project idea.
+
+```
+I want to build an AI-powered customer support chatbot that accesses our
+CRM database with customer PII and will be available on our public website.
+```
+
+Show the response — it should classify as **HIGH** tier with security, privacy, and responsible AI reviews required.
+
+---
+
+## Act 5 — No-Code Agent: Same Rules, Different UX (2 min)
+
+> **What to say**:
+>
+> "Not every team writes Python. A business analyst might build a Copilot agent in the Microsoft 365 Copilot Studio GUI. Can they use the same governance rules? Yes."
+
+**Show**: Open `copilot_no_code/README_DEPLOY_COPILOT_GUI.md` and walk through the setup.
+
+> "Today, Copilot agents consume the governance rules by pasting the Skill instructions into the agent's system prompt. But because the Toolbox is a standard MCP endpoint, Copilot Studio can connect to it directly — discovering the same governance Skill without any copy-paste."
+
+**(Optional)** If Copilot Studio is available, show the MCP connector configuration pointing to the Toolbox endpoint.
+
+---
+
+## Act 6 — The Payoff: Define Once, Reuse Everywhere (2 min)
+
+> **What to say**:
+>
+> "Let's step back and look at what we've built."
+
+**Show the architecture diagram** from the README:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Azure AI Foundry Project                     │
+│                                                                 │
+│   ┌─────────────────────┐    ┌──────────────────────────────┐  │
+│   │ Registered Skill    │───▶│ Toolbox (MCP endpoint)       │  │
+│   │ (governance rules)  │    │ governance-toolbox            │  │
+│   └─────────────────────┘    └──────┬───────────┬───────────┘  │
+│                                     │           │               │
+│                          ┌──────────▼──┐  ┌─────▼──────────┐   │
+│                          │ Hosted Agent │  │ Copilot Studio │   │
+│                          │ (Python)     │  │ (MCP client)   │   │
+│                          └─────────────┘  └────────────────┘   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+                                │
+                     ┌──────────▼──────────┐
+                     │ No-Code Copilot     │
+                     │ (manual rules)      │
+                     └─────────────────────┘
+```
+
+> "One Skill definition. One Toolbox endpoint. Three different agent experiences — all following the same governance rules. When the rules change, you update the Skill, create a new Toolbox version, and every agent picks up the change automatically. No redeployment needed."
+
+---
+
+## Closing (1 min)
+
+> "This is the pattern we recommend for any enterprise policy that crosses agent boundaries: compliance checks, approval workflows, data classification, security posture, operational readiness. Define the logic once as a Skill, publish it through a Toolbox, and let every agent — regardless of how it's built — discover and follow the same rules."
 
 ---
 
 ## 📄 Sample Output
 
-See the expected markdown summary here:
+After invoking the agent, you can compare the output against these references:
 
-- [`samples/expected_markdown_summary.md`](../samples/expected_markdown_summary.md)
-
-You can also compare the structured output in:
-
-- [`samples/expected_skill_response.json`](../samples/expected_skill_response.json)
+- [`samples/expected_markdown_summary.md`](../samples/expected_markdown_summary.md) — Expected markdown summary
+- [`samples/expected_skill_response.json`](../samples/expected_skill_response.json) — Expected structured JSON response
+- [`samples/high_risk_agentic_workflow_request.json`](../samples/high_risk_agentic_workflow_request.json) — High-risk sample input
+- [`samples/low_risk_reporting_request.json`](../samples/low_risk_reporting_request.json) — Low-risk sample input

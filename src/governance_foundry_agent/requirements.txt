@@ -2,5 +2,7 @@ agent-framework>=1.2.2
 agent-framework-foundry-hosting
 azure-ai-projects>=2.2.0
 azure-identity
+httpx
+mcp
 pydantic>=2.0
 python-dotenv

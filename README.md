@@ -6,16 +6,17 @@
 
 ## 🎯 Demo Purpose
 
-This demo shows how **one shared governance Skill** can define intake rules, risk tiering, required reviews, controls, and output contracts **once**—then be reused by:
+This demo shows how **one shared governance Skill** can define intake rules, risk tiering, required reviews, controls, and output contracts **once**—then be consumed by multiple agents through a **Foundry Toolbox (MCP endpoint)**:
 
-- a **pro-code Azure AI Foundry hosted agent**, and
-- a **no-code Copilot agent**.
+- a **pro-code Azure AI Foundry hosted agent** (discovers the Skill via Toolbox MCP at runtime),
+- a **Copilot Studio agent** (connects to the same Toolbox MCP endpoint), and
+- a **no-code Copilot agent** (uses the same governance rules manually).
 
-The result is consistent governance behavior across both experiences, without duplicating business rules.
+The result is consistent governance behavior across all experiences, without duplicating business rules.
 
 ## ✨ Why Azure AI Foundry Skills Matter
 
-Azure AI Foundry Skills enable teams to **define a business capability once and reuse it across multiple agents**. In this demo, the shared Skill is the governance source of truth for:
+Azure AI Foundry Skills enable teams to **define a business capability once and reuse it across multiple agents**. When published to a **Toolbox**, any MCP-compatible client can discover and consume the Skill — no custom SDK integration required. In this demo, the shared Skill is the governance source of truth for:
 
 - project intake requirements,
 - governance tier classification,
@@ -32,24 +33,24 @@ flowchart LR
     U1[Business User / Requestor]
     U2[Copilot User]
 
-    S[(Shared Governance Skill<br/>project_intake_governance_skill.yaml<br/>+ Python runtime contract)]
-
     subgraph F[Azure AI Foundry Project]
-        SK[Registered Foundry Skill<br/>project-intake-governance]
+        SK[Registered Skill<br/>project-intake-governance]
+        TB[Toolbox — MCP Endpoint<br/>governance-toolbox]
         M[Model Deployment<br/>gpt-4.1-mini]
-        A[Foundry Hosted Agent<br/>governance-intake-agent]
+        A[Hosted Agent<br/>governance-intake-agent]
     end
 
-    C[Copilot No-Code Agent<br/>Project Intake & Governance Advisor]
+    CS[Copilot Studio Agent<br/>MCP client]
+    C[No-Code Copilot Agent<br/>manual rules]
 
-    U1 --> A
-    U2 --> C
-    A --> SK
-    SK --> S
-    C --> S
+    SK --> TB
+    A -- MCP resources/read --> TB
+    CS -- MCP resources/read --> TB
     A --> M
-    A --> U1
-    C --> U2
+    U1 --> A
+    U2 --> CS
+    U2 --> C
+    C -. same rules .-> SK
 ```
 
 ## 📁 Project Structure
@@ -97,24 +98,24 @@ flowchart LR
 
 The Foundry agent in `src/governance_foundry_agent/main.py` is a pro-code hosted agent built with **agent-framework**:
 
-1. It imports the shared models and runtime from `shared_skill`.
-2. It registers `evaluate_governance` as a tool.
-3. The tool validates input against `ProjectIntakeRequest`.
-4. The shared runtime evaluates the request using centralized governance rules.
-5. The agent returns both a structured package and a markdown summary.
+1. At startup, it connects to the **Foundry Toolbox MCP endpoint** (`governance-toolbox`).
+2. It discovers the `project-intake-governance` Skill via MCP `resources/list`.
+3. It downloads the Skill content via `resources/read` and injects it into the agent's system prompt.
+4. It registers `evaluate_governance` as a local Python tool for deterministic execution.
+5. The LLM follows the Skill's behavioral instructions; the Python module executes the governance logic.
 
-This keeps the governance logic in one place while allowing the hosted agent to provide conversational intake and tool-based execution.
+If the Toolbox is unreachable (e.g., during local development), the agent falls back to bundled instructions.
 
 ## 🧩 How the Copilot Agent Works
 
-The no-code Copilot experience uses declarative instructions that point back to the **same Skill contract and governance rules**. Its instructions explicitly tell the agent to:
+The no-code Copilot experience uses declarative instructions that reference the **same governance rules** from the Skill. Because the Toolbox is a standard MCP endpoint, Copilot Studio can also connect to it directly. The instructions tell the agent to:
 
 - align to the shared request schema,
 - apply the same low / medium / high tiering rules,
 - return the same 12-field readiness package, and
 - avoid inventing alternate governance policies.
 
-This gives you two different user experiences with one governance definition.
+This gives you multiple user experiences with one governance definition.
 
 ## 🚀 Quick Start — Deploy the Foundry Agent
 
@@ -202,14 +203,18 @@ azd env set AZURE_CONTAINER_REGISTRY_ENDPOINT <acr-name>.azurecr.io
 azd env set AZURE_AI_MODEL_DEPLOYMENT_NAME gpt-4.1-mini
 ```
 
-### 6) Register the shared Skill in Foundry
+### 6) Register the Skill and publish the Toolbox
 
 ```bash
 export FOUNDRY_PROJECT_ENDPOINT=https://<ai-account>.services.ai.azure.com/api/projects/<project>
 python scripts/register_skill.py
 ```
 
-This registers the **Project Intake & Governance Readiness** Skill in your Foundry project. You can verify it in the Foundry portal under **Build → Tools → Skills**.
+This does two things:
+1. Registers the **Project Intake & Governance Readiness** Skill (visible under **Build → Tools → Skills**).
+2. Publishes it to a **Toolbox** called `governance-toolbox` (visible under **Build → Tools → Toolboxes**).
+
+The Toolbox exposes the Skill as an MCP endpoint that any agent can connect to.
 
 ### 7) Deploy the hosted agent
 
@@ -232,7 +237,7 @@ For the no-code Copilot experience, follow the guided walkthrough in:
 
 That guide covers both:
 
-- **Copilot Studio** for richer runtime integration, and
+- **Copilot Studio** for richer runtime integration (can connect to the Toolbox MCP endpoint directly), and
 - **Agent Builder** for a lighter instructions-first experience.
 
 ## 🗣️ Demo Talk Track
@@ -258,8 +263,9 @@ az group delete --name <rg-name> --yes --no-wait
 
 - All data in this demo is **synthetic**—no real customers, projects, or companies are represented.
 - This demo targets **modern Azure AI Foundry projects (Microsoft Foundry)**, not legacy hub-based patterns.
-- **Foundry Skills are currently in preview**; this demo uses the `azure-ai-projects` SDK (`beta.skills`) to register the Skill.
+- **Foundry Skills and Toolboxes are currently in preview**; this demo uses `beta.skills` and `beta.toolboxes` from the `azure-ai-projects` SDK.
+- The Toolbox MCP endpoint requires the `Foundry-Features: Toolboxes=V1Preview` header.
 
 ## 🤝 Summary
 
-This repository demonstrates a practical pattern for enterprise agent governance: **one shared Skill, multiple agent experiences, consistent outcomes**.
+This repository demonstrates a practical pattern for enterprise agent governance: **one shared Skill, published to a Toolbox, consumed by multiple agents via MCP — consistent outcomes everywhere**.

@@ -1,5 +1,6 @@
 """
-Register the Project Intake & Governance Readiness Skill in Azure AI Foundry.
+Register the Project Intake & Governance Readiness Skill in Azure AI Foundry
+and publish it to a Toolbox for MCP-based discovery.
 
 Usage:
     python scripts/register_skill.py
@@ -14,10 +15,11 @@ import os
 import sys
 
 from azure.ai.projects import AIProjectClient
-from azure.ai.projects.models import SkillInlineContent
+from azure.ai.projects.models import SkillInlineContent, ToolboxSkillReference
 from azure.identity import DefaultAzureCredential
 
 SKILL_NAME = "project-intake-governance"
+TOOLBOX_NAME = "governance-toolbox"
 
 DESCRIPTION = (
     "Standardize project intake, classification, governance tiering, "
@@ -116,14 +118,13 @@ def main():
         print("  export FOUNDRY_PROJECT_ENDPOINT=https://<account>.services.ai.azure.com/api/projects/<project>")
         sys.exit(1)
 
-    print(f"Registering Skill '{SKILL_NAME}' in Foundry project...")
-    print(f"  Endpoint: {endpoint}")
-
     client = AIProjectClient(
         endpoint=endpoint,
         credential=DefaultAzureCredential(),
     )
 
+    # Step 1: Register the Skill
+    print(f"Registering Skill '{SKILL_NAME}'...")
     skill = client.beta.skills.create(
         name=SKILL_NAME,
         inline_content=SkillInlineContent(
@@ -132,14 +133,33 @@ def main():
         ),
         default=True,
     )
+    print(f"  Skill registered: {skill.name} (version {skill.version})")
 
+    # Step 2: Publish the Skill to a Toolbox
+    print(f"\nPublishing Skill to Toolbox '{TOOLBOX_NAME}'...")
+    toolbox_version = client.beta.toolboxes.create_version(
+        name=TOOLBOX_NAME,
+        description=(
+            "Governance toolbox providing the Project Intake & Governance "
+            "Readiness Skill via MCP. Connect any agent — hosted, Copilot "
+            "Studio, or external MCP client — to this endpoint to discover "
+            "and consume governance skills."
+        ),
+        tools=[],
+        skills=[ToolboxSkillReference(name=SKILL_NAME)],
+    )
+    print(f"  Toolbox version created: {toolbox_version.version}")
+
+    # Build the MCP endpoint URL
+    mcp_endpoint = f"{endpoint.rstrip('/')}/toolboxes/{TOOLBOX_NAME}/mcp?api-version=v1"
+    print(f"\nToolbox MCP endpoint (for agents and Copilot Studio):")
+    print(f"  {mcp_endpoint}")
     print()
-    print(f"Skill registered successfully!")
-    print(f"  Name:    {skill.name}")
-    print(f"  Version: {skill.version}")
-    print(f"  ID:      {skill.get('skill_id', 'N/A')}")
+    print("The Skill is visible in the Foundry portal under Build > Tools > Skills.")
+    print("The Toolbox is visible under Build > Tools > Toolboxes.")
     print()
-    print("The Skill is now visible in the Foundry portal under Build > Tools > Skills.")
+    print("To connect a hosted agent or Copilot Studio, use the MCP endpoint above.")
+    print("Required header: Foundry-Features: Toolboxes=V1Preview")
 
 
 if __name__ == "__main__":
