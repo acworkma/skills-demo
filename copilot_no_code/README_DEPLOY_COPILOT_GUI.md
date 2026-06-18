@@ -54,19 +54,21 @@ This is the key step that connects the Copilot Studio agent to the same governan
 | **Server URL** | `https://<account>.services.ai.azure.com/api/projects/<project>/toolboxes/governance-toolbox/mcp?api-version=v1` |
 | **Authentication** | Select **OAuth 2.0** |
 
-4. Under **Authentication → Type**, select **Manual** and fill in:
+4. Under **Type**, select **Manual** and fill in the fields:
 
 | Field | Value |
 |-------|-------|
-| **Authorization URL** | `https://login.microsoftonline.com/<tenant-id>/oauth2/v2.0/authorize` |
-| **Token URL** | `https://login.microsoftonline.com/<tenant-id>/oauth2/v2.0/token` |
-| **Client ID** | The Application (client) ID from your Entra ID app registration |
-| **Client Secret** | The secret from your Entra ID app registration |
-| **Scope** | `https://ai.azure.com/.default` |
+| **Client ID** *(required)* | The Application (client) ID from your Entra ID app registration |
+| **Client secret** *(required)* | The secret from your Entra ID app registration |
+| **Authorization URL** *(required)* | `https://login.microsoftonline.com/<tenant-id>/oauth2/v2.0/authorize` |
+| **Token URL template** *(required)* | `https://login.microsoftonline.com/<tenant-id>/oauth2/v2.0/token` |
+| **Refresh URL** *(required)* | `https://login.microsoftonline.com/<tenant-id>/oauth2/v2.0/token` |
+| **Scopes** | `https://ai.azure.com/.default` |
+| **Redirect URL** | *(auto-generated — leave blank; Copilot Studio fills this after you save)* |
 
-   > **Note**: You need an Entra ID app registration with API permissions for Azure AI Services. Replace `<tenant-id>` with your Entra tenant ID.
+   > **Note**: You need an Entra ID app registration with API permissions for Azure AI Services. Replace `<tenant-id>` with your Entra tenant ID. The **Refresh URL** uses the same token endpoint as the **Token URL template**.
 
-4. Click **Create**.
+5. Click **Create**.
 
 The agent now discovers the `project-intake-governance` Skill from the Toolbox at runtime — the same Skill the hosted Foundry agent uses.
 
