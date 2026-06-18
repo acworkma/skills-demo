@@ -74,6 +74,30 @@ I want to build an AI-powered customer support chatbot that accesses our
 CRM database with customer PII and will be available on our public website.
 ```
 
+The agent asks clarifying questions to fill in the required fields. Provide the follow-up answers:
+
+```
+Here are the details:
+
+- Project name: Customer Support AI Chatbot
+- Description: An AI chatbot integrated with our Salesforce CRM that answers
+  customer questions about their orders, accounts, and billing. It accesses
+  customer PII including names, emails, and order history.
+- Business sponsor: Sarah Chen, VP of Customer Experience
+- Business owner: Marcus Johnson, Director of Support Operations
+- Technical owner: Priya Patel, Lead Platform Engineer
+- Target users: External customers visiting our public support portal
+- Business goal: Reduce support ticket volume by 40% and improve first-response
+  time from 4 hours to under 2 minutes
+- Request type: ai_assistant
+- Data sources: Salesforce CRM, Zendesk ticket history
+- Contains sensitive data: yes
+- Contains personal data: yes
+- External sharing: yes
+- Production impact: high
+- Decision impact: medium
+```
+
 Show the response — it should classify as **HIGH** tier with security, privacy, and responsible AI reviews required.
 
 ---
