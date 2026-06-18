@@ -171,17 +171,21 @@ skill:
         - "User-facing AI behavior"
 
   foundry_skill_binding:
-    # When Azure AI Foundry Skills reach GA, register this Skill using:
+    # Register this Skill in your Foundry project by running:
+    #
+    #   python scripts/register_skill.py
+    #
+    # Or programmatically:
     #
     #   from azure.ai.projects import AIProjectClient
+    #   from azure.ai.projects.models import SkillInlineContent
     #   client = AIProjectClient(endpoint=..., credential=...)
-    #   skill = client.beta.skills.create(
+    #   client.beta.skills.create(
     #       name="project-intake-governance",
-    #       inline_content=SkillInlineContent(content=open("skills/project_intake_governance_skill.yaml").read())
+    #       inline_content=SkillInlineContent(description=..., instructions=...),
+    #       default=True,
     #   )
     #
-    # The Foundry hosted agent will then reference this registered Skill
-    # instead of importing the Python module directly.
-    status: "preview — use Python module at src/governance_foundry_agent/shared_skill/"
+    registration_script: "scripts/register_skill.py"
     registration_method: "azure.ai.projects.beta.skills.create()"
     sdk_package: "azure-ai-projects>=2.2.0"

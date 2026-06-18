@@ -35,6 +35,7 @@ flowchart LR
     S[(Shared Governance Skill<br/>project_intake_governance_skill.yaml<br/>+ Python runtime contract)]
 
     subgraph F[Azure AI Foundry Project]
+        SK[Registered Foundry Skill<br/>project-intake-governance]
         M[Model Deployment<br/>gpt-4.1-mini]
         A[Foundry Hosted Agent<br/>governance-intake-agent]
     end
@@ -43,7 +44,8 @@ flowchart LR
 
     U1 --> A
     U2 --> C
-    A --> S
+    A --> SK
+    SK --> S
     C --> S
     A --> M
     A --> U1
@@ -57,6 +59,8 @@ flowchart LR
 ├── azure.yaml                                 # azd project definition for the hosted Foundry agent
 ├── infra/
 │   └── main.bicep                            # Minimal azd-compatible infrastructure entry point
+├── scripts/
+│   └── register_skill.py                     # Registers the shared Skill in Azure AI Foundry
 ├── skills/
 │   ├── project_intake_governance_skill.yaml  # Shared Skill contract and governance tier definitions
 │   ├── skill_contract.md                     # Human-readable Skill contract
@@ -84,7 +88,7 @@ flowchart LR
 │   ├── expected_markdown_summary.md          # Expected demo-ready markdown output
 │   ├── expected_skill_response.json          # Expected structured response
 │   └── *_request.json                        # Sample intake requests
-└── tests/                                    # Test folder referenced by the demo command
+└── tests/                                    # Pytest suite validating governance rules and contracts
 ```
 
 ## 🤖 How the Foundry Agent Works
@@ -114,10 +118,11 @@ This gives you two different user experiences with one governance definition.
 
 ### 1) Prerequisites
 
-- Python 3.13
-- `azd` version `>= 1.25.2`
-- Azure subscription access
-- An Azure AI Foundry project (or permission to create one)
+- Python 3.13+
+- Azure CLI (`az`) — [install](https://learn.microsoft.com/cli/azure/install-azure-cli)
+- Azure Developer CLI (`azd`) version `>= 1.25.2` — [install](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd)
+- Azure subscription with permissions to create AI Services, Container Registry, and Foundry projects
+- `pip install azure-ai-projects azure-identity` (for Skill registration)
 
 ### 2) Install the Foundry extension
 
@@ -125,82 +130,97 @@ This gives you two different user experiences with one governance definition.
 azd ext install microsoft.foundry
 ```
 
-### 3) Authenticate and initialize
+### 3) Authenticate
 
 ```bash
+az login
 azd auth login
+```
+
+### 4) Create Azure resources
+
+Create the resource group, AI Services account, Foundry project, model deployment, and container registry:
+
+```bash
+# Create resource group
+az group create --name <rg-name> --location <region>
+
+# Create AI Services account with managed identity
+az cognitiveservices account create \
+  --name <ai-account-name> --resource-group <rg-name> \
+  --location <region> --kind AIServices --sku S0 \
+  --custom-domain <ai-account-name>
+
+az cognitiveservices account identity assign \
+  --name <ai-account-name> --resource-group <rg-name>
+
+# Create Foundry project (requires managed identity on the AI Services account)
+az rest --method PUT \
+  --url "https://management.azure.com/subscriptions/<subscription-id>/resourceGroups/<rg-name>/providers/Microsoft.CognitiveServices/accounts/<ai-account-name>/projects/<project-name>?api-version=2025-06-01" \
+  --body '{"location":"<region>","identity":{"type":"SystemAssigned"},"properties":{"displayName":"<display-name>"}}'
+
+# Deploy the model
+az cognitiveservices account deployment create \
+  --name <ai-account-name> --resource-group <rg-name> \
+  --deployment-name gpt-4.1-mini --model-name gpt-4.1-mini \
+  --model-version 2025-04-14 --model-format OpenAI \
+  --sku-capacity 10 --sku-name GlobalStandard
+
+# Create container registry
+az acr create --name <acr-name> --resource-group <rg-name> \
+  --location <region> --sku Basic --admin-enabled true
+
+# Grant AcrPull to the AI Services managed identity
+AI_PRINCIPAL=$(az cognitiveservices account show \
+  --name <ai-account-name> --resource-group <rg-name> \
+  --query identity.principalId -o tsv)
+ACR_ID=$(az acr show --name <acr-name> --resource-group <rg-name> --query id -o tsv)
+az role assignment create --assignee-object-id $AI_PRINCIPAL \
+  --assignee-principal-type ServicePrincipal --role AcrPull --scope $ACR_ID
+
+# Grant AcrPull to the Foundry project managed identity
+PROJECT_PRINCIPAL=$(az rest --method GET \
+  --url "https://management.azure.com/subscriptions/<subscription-id>/resourceGroups/<rg-name>/providers/Microsoft.CognitiveServices/accounts/<ai-account-name>/projects/<project-name>?api-version=2025-06-01" \
+  --query identity.principalId -o tsv)
+az role assignment create --assignee-object-id $PROJECT_PRINCIPAL \
+  --assignee-principal-type ServicePrincipal --role AcrPull --scope $ACR_ID
+```
+
+### 5) Initialize and configure azd
+
+```bash
 azd init --environment <your-env-name>
-```
 
-### 4) Configure your Azure environment
-
-```bash
 azd env set AZURE_SUBSCRIPTION_ID <your-subscription-id>
-azd env set AZURE_LOCATION <region>               # e.g. eastus2
-azd env set AZURE_RESOURCE_GROUP <rg-name>         # e.g. rg-skills
-```
-
-### 5) Connect to your Foundry project
-
-If you have an existing Foundry project, set these variables:
-
-```bash
-azd env set AZURE_AI_PROJECT_ID <full-arm-resource-id-of-project>
-azd env set FOUNDRY_PROJECT_ENDPOINT https://<account>.services.ai.azure.com/api/projects/<project>
-azd env set AZURE_CONTAINER_REGISTRY_ENDPOINT <registry>.azurecr.io
+azd env set AZURE_LOCATION <region>
+azd env set AZURE_RESOURCE_GROUP <rg-name>
+azd env set AZURE_AI_PROJECT_ID /subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.CognitiveServices/accounts/<ai-account>/projects/<project>
+azd env set FOUNDRY_PROJECT_ENDPOINT https://<ai-account>.services.ai.azure.com/api/projects/<project>
+azd env set AZURE_CONTAINER_REGISTRY_ENDPOINT <acr-name>.azurecr.io
 azd env set AZURE_AI_MODEL_DEPLOYMENT_NAME gpt-4.1-mini
 ```
 
-If you need to create new resources, see the [detailed setup guide](#detailed-azure-resource-setup) below.
+### 6) Register the shared Skill in Foundry
 
-### 6) Deploy the hosted agent
+```bash
+export FOUNDRY_PROJECT_ENDPOINT=https://<ai-account>.services.ai.azure.com/api/projects/<project>
+python scripts/register_skill.py
+```
+
+This registers the **Project Intake & Governance Readiness** Skill in your Foundry project. You can verify it in the Foundry portal under **Build → Tools → Skills**.
+
+### 7) Deploy the hosted agent
 
 ```bash
 azd deploy
 ```
 
-### 7) Verify the agent
+### 8) Verify
 
 ```bash
 azd ai agent show
 azd ai agent invoke "I want to submit a new AI project for governance review"
 ```
-
-### Detailed Azure Resource Setup
-
-If you don't have existing resources, create them before deploying:
-
-```bash
-# Create resource group
-az group create --name rg-skills --location eastus2
-
-# Create AI Services account with managed identity
-az cognitiveservices account create \
-  --name <ai-account-name> --resource-group rg-skills \
-  --location eastus2 --kind AIServices --sku S0 \
-  --custom-domain <ai-account-name>
-az cognitiveservices account identity assign \
-  --name <ai-account-name> --resource-group rg-skills
-
-# Create Foundry project (via REST API)
-az rest --method PUT \
-  --url "https://management.azure.com/subscriptions/<sub>/resourceGroups/rg-skills/providers/Microsoft.CognitiveServices/accounts/<ai-account-name>/projects/<project-name>?api-version=2025-06-01" \
-  --body '{"location":"eastus2","identity":{"type":"SystemAssigned"},"properties":{"displayName":"Skills Demo"}}'
-
-# Deploy model
-az cognitiveservices account deployment create \
-  --name <ai-account-name> --resource-group rg-skills \
-  --deployment-name gpt-4.1-mini --model-name gpt-4.1-mini \
-  --model-version 2025-04-14 --model-format OpenAI \
-  --sku-capacity 10 --sku-name GlobalStandard
-
-# Create container registry and grant pull access
-az acr create --name <acr-name> --resource-group rg-skills \
-  --location eastus2 --sku Basic --admin-enabled true
-# Grant AcrPull to both AI Services and project managed identities
-```
-
-Then set the `azd env` variables from step 5 and run `azd deploy`.
 
 ## 🪄 Quick Start — Configure the Copilot Agent
 
@@ -218,20 +238,21 @@ That guide covers both:
 Use this narrative for a 3–5 minute customer demo:
 
 1. Start with the business problem: governance logic often gets duplicated across bots, copilots, and custom apps.
-2. Show the shared Skill YAML and explain that it is the single governance contract.
+2. Open the Foundry portal and show the registered **Skill** under Build → Tools → Skills.
 3. Show the Foundry hosted agent and how it calls the shared runtime through `evaluate_governance`.
 4. Show the no-code Copilot agent instructions and highlight that they reference the same contract and rules.
 5. Close with the key value proposition: **define once, reuse everywhere**.
 
 ## ▶️ Suggested Live Demo Flow
 
-1. Open `skills/project_intake_governance_skill.yaml` and point out the shared input/output contract.
-2. Open `src/governance_foundry_agent/main.py` and show the tool registration.
-3. Invoke the Foundry hosted agent with a sample project idea.
-4. Show the generated readiness package and markdown summary.
-5. Open the Copilot no-code deployment guide and explain the alternate user experience.
-6. If available, show the Copilot agent producing the same governance outcome for the same request.
-7. End by comparing both channels and reinforcing that the business rules were not duplicated.
+1. Open the Foundry portal and show the registered Skill under **Build → Tools → Skills**.
+2. Open `skills/project_intake_governance_skill.yaml` and point out the shared input/output contract.
+3. Open `src/governance_foundry_agent/main.py` and show the tool registration.
+4. Invoke the Foundry hosted agent with a sample project idea.
+5. Show the generated readiness package and markdown summary.
+6. Open the Copilot no-code deployment guide and explain the alternate user experience.
+7. If available, show the Copilot agent producing the same governance outcome for the same request.
+8. End by comparing both channels and reinforcing that the business rules were not duplicated.
 
 ## 📄 Sample Output
 
@@ -251,17 +272,18 @@ pip install pydantic pytest && pytest tests/ -v
 
 ## 🧹 Cleanup
 
-To tear down provisioned resources:
+To tear down all provisioned resources:
 
 ```bash
 azd down
+az group delete --name <rg-name> --yes --no-wait
 ```
 
 ## 📌 Important Notes
 
 - All data in this demo is **synthetic**—no real customers, projects, or companies are represented.
 - This demo targets **modern Azure AI Foundry projects (Microsoft Foundry)**, not legacy hub-based patterns.
-- **Foundry Skills are currently in preview**; until the GA SDK surface is available, the Python shared module serves as the runtime implementation.
+- **Foundry Skills are currently in preview**; this demo uses the `azure-ai-projects` SDK (`beta.skills`) to register the Skill.
 
 ## 🤝 Summary
 
