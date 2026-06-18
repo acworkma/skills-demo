@@ -22,6 +22,9 @@ RULES_SOURCE = (
 INSTRUCTIONS_SOURCE = (
     PROJECT_ROOT / "copilot_no_code" / "declarative_agent_instructions.md"
 ).read_text(encoding="utf-8")
+SKILL_REGISTRATION_SOURCE = (
+    PROJECT_ROOT / "scripts" / "register_skill.py"
+).read_text(encoding="utf-8")
 
 
 def test_foundry_agent_main_imports_the_shared_skill_contract() -> None:
@@ -44,31 +47,35 @@ def test_copilot_instructions_reference_the_shared_skill_name() -> None:
 
 
 def test_copilot_instructions_reference_same_tier_criteria_as_shared_rules() -> None:
-    expected_rule_phrases = [
-        "Contains sensitive data (`contains_sensitive_data == true`)",
-        "Contains personal data / PII (`contains_personal_data == true`)",
-        "Outputs are shared externally (`external_sharing == true`)",
-        'Production impact is high (`production_impact == "high"`)',
-        'Decision impact is high (`decision_impact == "high"`)',
-        "Request type is `agentic_workflow` or `automation`",
-        "Request type is `reporting` or `dashboard`",
-        "No sensitive data (`contains_sensitive_data == false`)",
-        "No personal data (`contains_personal_data == false`)",
-        "No external sharing (`external_sharing == false`)",
-        'Production impact is low (`production_impact == "low"`)',
-        'Decision impact is low (`decision_impact == "low"`)',
-    ]
+    """Copilot Studio instructions delegate to the Toolbox Skill for governance
+    rules. Verify the instructions reference the Skill and do NOT duplicate
+    tier criteria inline. The actual tier criteria live in the registered Skill
+    (scripts/register_skill.py INSTRUCTIONS constant)."""
 
-    assert "Rules are evaluated top-down. The first matching tier wins." in INSTRUCTIONS_SOURCE
-    for phrase in expected_rule_phrases:
-        assert phrase in INSTRUCTIONS_SOURCE
-
-    assert re.search(r"def classify_tier", RULES_SOURCE) is not None
+    # Instructions should reference the Toolbox as the source of truth
+    assert "Toolbox" in INSTRUCTIONS_SOURCE
     assert "Do NOT invent separate governance rules." in INSTRUCTIONS_SOURCE
-    assert "critical tier" not in INSTRUCTIONS_SOURCE.lower()
+    assert "single source of truth" in INSTRUCTIONS_SOURCE
+
+    # Instructions should NOT contain the full tiering rules (they come from the Skill)
+    assert "Rules are evaluated top-down" not in INSTRUCTIONS_SOURCE
+    assert "contains_sensitive_data == true" not in INSTRUCTIONS_SOURCE
+
+    # The registered Skill SHOULD contain the full tiering rules
+    assert "contains_sensitive_data is true" in SKILL_REGISTRATION_SOURCE
+    assert "contains_personal_data is true" in SKILL_REGISTRATION_SOURCE
+    assert "external_sharing is true" in SKILL_REGISTRATION_SOURCE
+    assert "agentic_workflow" in SKILL_REGISTRATION_SOURCE
+
+    # The Python governance_rules module should have the classify_tier function
+    assert re.search(r"def classify_tier", RULES_SOURCE) is not None
 
 
 def test_copilot_instructions_mention_all_output_contract_fields() -> None:
+    """The registered Skill (not the Copilot instructions) should list all 12
+    output contract fields. The Copilot instructions just say 'return the full
+    12-field readiness package' and let the Skill define the fields."""
+
     expected_output_fields = [
         "intake_summary",
         "normalized_request_type",
@@ -84,5 +91,12 @@ def test_copilot_instructions_mention_all_output_contract_fields() -> None:
         "audit_metadata",
     ]
 
+    # The registered Skill should list all 12 fields
     for field_name in expected_output_fields:
-        assert f"`{field_name}`" in INSTRUCTIONS_SOURCE
+        assert field_name in SKILL_REGISTRATION_SOURCE, (
+            f"Registered Skill missing output field: {field_name}"
+        )
+
+    # Copilot instructions should reference the 12-field package concept
+    assert "12" in INSTRUCTIONS_SOURCE
+    assert "output" in INSTRUCTIONS_SOURCE.lower() or "readiness package" in INSTRUCTIONS_SOURCE

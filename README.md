@@ -229,14 +229,11 @@ azd ai agent show
 azd ai agent invoke "I want to submit a new AI project for governance review"
 ```
 
-## 🪄 Quick Start — Configure the Copilot Agent
+## 🪄 Quick Start — Configure the Copilot Studio Agent
 
-For the no-code Copilot experience, follow the guided walkthrough in [copilot_no_code/README_DEPLOY_COPILOT_GUI.md](copilot_no_code/README_DEPLOY_COPILOT_GUI.md).
+For the Copilot Studio experience, follow the guided walkthrough in [copilot_no_code/README_DEPLOY_COPILOT_GUI.md](copilot_no_code/README_DEPLOY_COPILOT_GUI.md).
 
-That guide covers both:
-
-- **Copilot Studio** for richer runtime integration (can connect to the Toolbox MCP endpoint directly), and
-- **Agent Builder** for a lighter instructions-first experience.
+The Copilot Studio agent connects to the same **Foundry Toolbox MCP endpoint** as the hosted agent — discovering and loading the governance Skill at runtime.
 
 ## 🗣️ Demo Talk Track
 
