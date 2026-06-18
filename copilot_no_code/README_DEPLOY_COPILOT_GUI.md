@@ -52,7 +52,19 @@ This is the key step that connects the Copilot Studio agent to the same governan
 | **Server name** | `Governance Toolbox` |
 | **Server description** | `Foundry Toolbox providing the Project Intake & Governance Readiness Skill for governance tiering, required reviews, controls, and readiness output.` |
 | **Server URL** | `https://<account>.services.ai.azure.com/api/projects/<project>/toolboxes/governance-toolbox/mcp?api-version=v1` |
-| **Authentication** | Select **OAuth 2.0** and configure with your Entra ID app registration (scope: `https://ai.azure.com/.default`). If testing locally, **None** may work with a browser-authenticated session. |
+| **Authentication** | Select **OAuth 2.0** |
+
+4. Under **Authentication → Type**, select **Manual** and fill in:
+
+| Field | Value |
+|-------|-------|
+| **Authorization URL** | `https://login.microsoftonline.com/<tenant-id>/oauth2/v2.0/authorize` |
+| **Token URL** | `https://login.microsoftonline.com/<tenant-id>/oauth2/v2.0/token` |
+| **Client ID** | The Application (client) ID from your Entra ID app registration |
+| **Client Secret** | The secret from your Entra ID app registration |
+| **Scope** | `https://ai.azure.com/.default` |
+
+   > **Note**: You need an Entra ID app registration with API permissions for Azure AI Services. Replace `<tenant-id>` with your Entra tenant ID.
 
 4. Click **Create**.
 
