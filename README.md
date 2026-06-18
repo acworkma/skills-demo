@@ -231,9 +231,7 @@ azd ai agent invoke "I want to submit a new AI project for governance review"
 
 ## 🪄 Quick Start — Configure the Copilot Agent
 
-For the no-code Copilot experience, follow the guided walkthrough in:
-
-`copilot_no_code/README_DEPLOY_COPILOT_GUI.md`
+For the no-code Copilot experience, follow the guided walkthrough in [copilot_no_code/README_DEPLOY_COPILOT_GUI.md](copilot_no_code/README_DEPLOY_COPILOT_GUI.md).
 
 That guide covers both:
 
