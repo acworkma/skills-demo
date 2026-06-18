@@ -9,12 +9,15 @@ param environmentName string
 @description('Principal ID used for optional role assignments or downstream access.')
 param principalId string = ''
 
-/*
-  This Bicep file is intentionally minimal.
-
-  In this demo, azd provisions and deploys the Azure AI Foundry agent and model
-  deployment through azure.yaml service configuration. Use this template only
-  for any additional infrastructure you want to add around the demo.
-*/
-
-output SERVICE_GOVERNANCE_INTAKE_AGENT_ENDPOINT string = 'set-by-azd-after-agent-deploy'
+// Tagging resource to satisfy azd's requirement for at least one resource.
+// The Foundry project, model deployment, ACR, and hosted agent are provisioned
+// by azd via the azure.yaml service configuration (host: azure.ai.agent).
+resource tags 'Microsoft.Resources/tags@2024-03-01' = {
+  name: 'default'
+  properties: {
+    tags: {
+      'azd-env-name': environmentName
+      'azd-managed': 'true'
+    }
+  }
+}
