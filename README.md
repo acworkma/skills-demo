@@ -63,7 +63,8 @@ flowchart LR
 ├── docs/
 │   └── DEMO_TALK_TRACK.md                    # Demo talk track and suggested live demo flow
 ├── scripts/
-│   └── register_skill.py                     # Registers the shared Skill in Azure AI Foundry
+│   ├── register_skill.py                     # Registers the shared Skill in Azure AI Foundry
+│   └── create_entra_app.sh                   # Creates the Entra ID app registration for Copilot Studio OAuth
 ├── skills/
 │   ├── project_intake_governance_skill.yaml  # Shared Skill contract and governance tier definitions
 │   ├── skill_contract.md                     # Human-readable Skill contract
@@ -231,9 +232,30 @@ azd ai agent invoke "I want to submit a new AI project for governance review"
 
 ## 🪄 Quick Start — Configure the Copilot Studio Agent
 
-For the Copilot Studio experience, follow the guided walkthrough in [copilot_no_code/README_DEPLOY_COPILOT_GUI.md](copilot_no_code/README_DEPLOY_COPILOT_GUI.md).
-
 The Copilot Studio agent connects to the same **Foundry Toolbox MCP endpoint** as the hosted agent — discovering and loading the governance Skill at runtime.
+
+### 1) Create the Entra ID app registration
+
+Copilot Studio needs OAuth credentials to authenticate against the Toolbox MCP endpoint. Run the setup script:
+
+```bash
+chmod +x scripts/create_entra_app.sh
+./scripts/create_entra_app.sh
+```
+
+This creates an Entra app registration with the correct API permissions and prints the **Client ID**, **Client Secret**, and **OAuth URLs** you'll need in Step 5 of the Copilot Studio walkthrough.
+
+### 2) Follow the GUI walkthrough
+
+Open [copilot_no_code/README_DEPLOY_COPILOT_GUI.md](copilot_no_code/README_DEPLOY_COPILOT_GUI.md) and follow the step-by-step guide to create the agent, paste instructions, connect the MCP server, and test.
+
+### 3) Add the Redirect URL
+
+After Copilot Studio generates a **Redirect URL** (shown after creating the MCP connector), add it back to the app registration:
+
+```bash
+az ad app update --id <client-id> --web-redirect-uris "<redirect-url-from-copilot-studio>"
+```
 
 ## 🗣️ Demo Talk Track
 

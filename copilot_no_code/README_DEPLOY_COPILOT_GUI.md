@@ -9,6 +9,7 @@ This guide shows how to create a Copilot Studio agent that connects to the **Fou
 - An active **Microsoft 365 Copilot** license.
 - Access to **Copilot Studio** (https://copilotstudio.microsoft.com).
 - Permission to create or publish Copilot agents in your tenant.
+- An **Entra ID app registration** with OAuth credentials — run `scripts/create_entra_app.sh` to create one automatically (see main README).
 - The **Foundry Toolbox MCP endpoint** URL (printed by `scripts/register_skill.py` during deployment).
 - The conversation starters from `copilot_no_code/conversation_starters.md`.
 
@@ -66,9 +67,16 @@ This is the key step that connects the Copilot Studio agent to the same governan
 | **Scopes** | `https://ai.azure.com/.default` |
 | **Redirect URL** | *(auto-generated — leave blank; Copilot Studio fills this after you save)* |
 
-   > **Note**: You need an Entra ID app registration with API permissions for Azure AI Services. Replace `<tenant-id>` with your Entra tenant ID. The **Refresh URL** uses the same token endpoint as the **Token URL template**.
+   > **Note**: Run `scripts/create_entra_app.sh` to create the app registration automatically — it prints all the values you need here. Replace `<tenant-id>` with your Entra tenant ID. The **Refresh URL** uses the same token endpoint as the **Token URL template**.
 
 5. Click **Create**.
+6. Copilot Studio generates a **Redirect URL**. Copy it and add it to your Entra app registration:
+
+   ```bash
+   az ad app update --id <client-id> --web-redirect-uris "<redirect-url>"
+   ```
+
+7. Back in Copilot Studio, click on the Governance Toolbox tool, select **Create new connection**, and sign in when prompted.
 
 The agent now discovers the `project-intake-governance` Skill from the Toolbox at runtime — the same Skill the hosted Foundry agent uses.
 
