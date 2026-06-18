@@ -45,12 +45,16 @@ This is the key step that connects the Copilot Studio agent to the same governan
 
 1. In the agent configuration, select **Add Tool**.
 2. Choose **Model Context Protocol**.
-3. Enter the **Foundry Toolbox MCP endpoint**:
-   ```
-   https://<account>.services.ai.azure.com/api/projects/<project>/toolboxes/governance-toolbox/mcp?api-version=v1
-   ```
-4. Configure authentication (Azure AD / Entra ID with scope `https://ai.azure.com/.default`).
-5. Save the tool connection.
+3. Fill in the fields on the **Add a Model Context Protocol server** screen:
+
+| Field | Value |
+|-------|-------|
+| **Server name** | `Governance Toolbox` |
+| **Server description** | `Foundry Toolbox providing the Project Intake & Governance Readiness Skill for governance tiering, required reviews, controls, and readiness output.` |
+| **Server URL** | `https://<account>.services.ai.azure.com/api/projects/<project>/toolboxes/governance-toolbox/mcp?api-version=v1` |
+| **Authentication** | Select **OAuth 2.0** and configure with your Entra ID app registration (scope: `https://ai.azure.com/.default`). If testing locally, **None** may work with a browser-authenticated session. |
+
+4. Click **Create**.
 
 The agent now discovers the `project-intake-governance` Skill from the Toolbox at runtime — the same Skill the hosted Foundry agent uses.
 
